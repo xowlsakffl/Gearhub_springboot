@@ -9,11 +9,13 @@ import com.ecommerce.project.repository.*;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderServiceImpl implements OrderService {
@@ -41,6 +43,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Value("${image.base.url}")
+    private String imageBaseUrl;
 
     @Override
     @Transactional
@@ -94,10 +99,35 @@ public class OrderServiceImpl implements OrderService {
             cartService.deleteProductFromCart(cart.getCartId(), item.getProduct().getProductId());
         });
 
-        OrderDTO orderDTO = modelMapper.map(savedOrder, OrderDTO.class);
-        orderItems.forEach(item -> orderDTO.getOrderItems().add(modelMapper.map(item, OrderItemDTO.class)));
+        OrderDTO orderDTO = toOrderDTO(savedOrder, orderItems);
         orderDTO.setAddressId(addressId);
 
         return orderDTO;
+    }
+
+    @Override
+    public List<OrderDTO> getOrdersByUser(String emailId) {
+        return orderRepository.findByEmailOrderByOrderDateDescOrderIdDesc(emailId).stream()
+                .map(order -> toOrderDTO(order, order.getOrderItems()))
+                .collect(Collectors.toList());
+    }
+
+    private OrderDTO toOrderDTO(Order order, List<OrderItem> orderItems) {
+        OrderDTO orderDTO = modelMapper.map(order, OrderDTO.class);
+        orderDTO.setAddressId(order.getAddress() != null ? order.getAddress().getAddressId() : null);
+        orderDTO.setOrderItems(orderItems.stream().map(this::toOrderItemDTO).collect(Collectors.toList()));
+        return orderDTO;
+    }
+
+    private OrderItemDTO toOrderItemDTO(OrderItem orderItem) {
+        OrderItemDTO orderItemDTO = modelMapper.map(orderItem, OrderItemDTO.class);
+        if (orderItemDTO.getProduct() != null && orderItem.getProduct() != null) {
+            String image = orderItem.getProduct().getImage();
+            if (image != null && !image.isBlank() && !image.startsWith("http://") && !image.startsWith("https://")) {
+                image = imageBaseUrl.endsWith("/") ? imageBaseUrl + image : imageBaseUrl + "/" + image;
+            }
+            orderItemDTO.getProduct().setImage(image);
+        }
+        return orderItemDTO;
     }
 }
