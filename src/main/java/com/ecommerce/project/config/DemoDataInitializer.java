@@ -60,30 +60,30 @@ public class DemoDataInitializer implements CommandLineRunner {
         Role sellerRole = ensureRole(AppRole.ROLE_SELLER);
         Role adminRole = ensureRole(AppRole.ROLE_ADMIN);
 
-        User demoUser = ensureUser("demo", "demo@eshop.local", "password123!", Set.of(userRole));
-        User sellerUser = ensureUser("seller1", "seller1@eshop.local", "seller123!", Set.of(userRole, sellerRole));
-        ensureUser("admin", "admin@eshop.local", "admin1234!", Set.of(userRole, sellerRole, adminRole));
+        User demoUser = ensureUser("demo", "demo@gearhub.local", "password123!", Set.of(userRole));
+        User sellerUser = ensureUser("seller1", "seller1@gearhub.local", "seller123!", Set.of(userRole, sellerRole));
+        ensureUser("admin", "admin@gearhub.local", "admin1234!", Set.of(userRole, sellerRole, adminRole));
 
         Category audioCategory = ensureCategory("오디오");
-        Category workspaceCategory = ensureCategory("워크스페이스");
+        Category computingCategory = ensureCategory("컴퓨팅");
         Category gamingCategory = ensureCategory("게이밍");
-        Category mobileCategory = ensureCategory("모바일");
+        Category mobileAccessoryCategory = ensureCategory("모바일 액세서리");
 
-        Product monitorArm = ensureProduct(
-                workspaceCategory,
+        Product monitor = ensureProduct(
+                computingCategory,
                 sellerUser,
-                "듀얼 모니터 암 스탠드",
-                "책상 공간을 넓혀 주는 알루미늄 듀얼 모니터 암입니다. 최대 32인치 모니터까지 안정적으로 지지합니다.",
+                "27인치 QHD 모니터",
+                "사무 작업과 콘텐츠 소비를 모두 커버하는 27인치 QHD 모니터입니다. 100Hz 주사율과 USB-C 입력을 지원합니다.",
                 "https://images.unsplash.com/photo-1527443195645-1133f7f28990?auto=format&fit=crop&w=1200&q=80",
                 18,
-                129000,
+                329000,
                 12
         );
         Product mechanicalKeyboard = ensureProduct(
-                workspaceCategory,
+                computingCategory,
                 sellerUser,
-                "로우 프로파일 기계식 키보드",
-                "사무와 코딩 모두에 맞춘 저소음 기계식 키보드입니다. 무선 3대 멀티페어링을 지원합니다.",
+                "저소음 기계식 키보드",
+                "업무와 코딩에 모두 어울리는 저소음 기계식 키보드입니다. 무선 3대 멀티페어링을 지원합니다.",
                 "https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?auto=format&fit=crop&w=1200&q=80",
                 26,
                 159000,
@@ -92,8 +92,8 @@ public class DemoDataInitializer implements CommandLineRunner {
         Product bookshelfSpeaker = ensureProduct(
                 audioCategory,
                 sellerUser,
-                "북쉘프 블루투스 스피커",
-                "작업실과 거실에 모두 어울리는 2채널 블루투스 스피커입니다. 풍부한 저음과 깔끔한 중고역이 특징입니다.",
+                "북셀프 스피커",
+                "책상과 거실 어디에나 어울리는 2채널 북셀프 스피커입니다. 선명한 중고역과 단단한 저역이 강점입니다.",
                 "https://images.unsplash.com/photo-1545454675-3531b543be5d?auto=format&fit=crop&w=1200&q=80",
                 14,
                 219000,
@@ -103,7 +103,7 @@ public class DemoDataInitializer implements CommandLineRunner {
                 audioCategory,
                 sellerUser,
                 "노이즈 캔슬링 헤드폰",
-                "출퇴근과 재택근무에 모두 적합한 프리미엄 무선 헤드폰입니다. 빠른 충전과 장시간 배터리를 지원합니다.",
+                "출퇴근과 재택근무를 모두 커버하는 프리미엄 무선 헤드폰입니다. 빠른 충전과 장시간 배터리를 지원합니다.",
                 "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=1200&q=80",
                 20,
                 289000,
@@ -113,7 +113,7 @@ public class DemoDataInitializer implements CommandLineRunner {
                 gamingCategory,
                 sellerUser,
                 "초경량 게이밍 마우스",
-                "59g 경량 설계와 고성능 센서를 갖춘 FPS 전용 게이밍 마우스입니다.",
+                "59g 경량 설계와 고성능 센서를 갖춘 FPS 중심 게이밍 마우스입니다.",
                 "https://images.unsplash.com/photo-1613141411244-0e4ac259d217?auto=format&fit=crop&w=1200&q=80",
                 32,
                 89000,
@@ -122,7 +122,7 @@ public class DemoDataInitializer implements CommandLineRunner {
         Product gamepad = ensureProduct(
                 gamingCategory,
                 sellerUser,
-                "멀티 플랫폼 무선 게임패드",
+                "무선 게임패드",
                 "PC와 태블릿, 스마트폰에서 모두 사용할 수 있는 무선 게임패드입니다.",
                 "https://images.unsplash.com/photo-1606144042614-b2417e99c4e3?auto=format&fit=crop&w=1200&q=80",
                 16,
@@ -130,24 +130,24 @@ public class DemoDataInitializer implements CommandLineRunner {
                 5
         );
         Product magsafeStand = ensureProduct(
-                mobileCategory,
+                mobileAccessoryCategory,
                 sellerUser,
                 "맥세이프 3 in 1 충전 스탠드",
-                "스마트폰, 이어폰, 워치를 한 번에 충전하는 데스크형 충전 스탠드입니다.",
+                "스마트폰, 이어버드, 스마트워치를 한 번에 충전하는 데스크형 충전 스탠드입니다.",
                 "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&q=80",
                 22,
                 99000,
                 14
         );
-        Product tabletPouch = ensureProduct(
-                mobileCategory,
+        Product usbHub = ensureProduct(
+                mobileAccessoryCategory,
                 sellerUser,
-                "방수 태블릿 파우치",
-                "11인치 태블릿과 액세서리를 함께 보관할 수 있는 생활방수 파우치입니다.",
+                "USB-C 8포트 멀티 허브",
+                "HDMI, USB-A, SD 카드 슬롯을 지원하는 휴대형 멀티 허브입니다. 노트북과 태블릿 연결성을 확장합니다.",
                 "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=80",
                 28,
-                39000,
-                0
+                69000,
+                7
         );
 
         ensureAddress(
@@ -159,7 +159,7 @@ public class DemoDataInitializer implements CommandLineRunner {
                 "서울특별시 성동구 왕십리로 83-21",
                 "서울 성동구 행당동 168-151",
                 "04750",
-                "서울숲리버뷰",
+                "서울리버뷰",
                 "서울",
                 "성동구",
                 "행당동"
@@ -173,7 +173,7 @@ public class DemoDataInitializer implements CommandLineRunner {
                 "서울특별시 강남구 테헤란로 427",
                 "서울 강남구 삼성동 159",
                 "06159",
-                "위워크 테헤란",
+                "테헤란오피스",
                 "서울",
                 "강남구",
                 "삼성동"
@@ -182,12 +182,12 @@ public class DemoDataInitializer implements CommandLineRunner {
         seedDemoCart(demoUser, List.of(
                 new SeedCartItem(noiseCancellingHeadphone, 1),
                 new SeedCartItem(mechanicalKeyboard, 1),
-                new SeedCartItem(magsafeStand, 2),
+                new SeedCartItem(magsafeStand, 1),
                 new SeedCartItem(bookshelfSpeaker, 1),
-                new SeedCartItem(monitorArm, 1),
+                new SeedCartItem(monitor, 1),
                 new SeedCartItem(gamingMouse, 1),
                 new SeedCartItem(gamepad, 1),
-                new SeedCartItem(tabletPouch, 2)
+                new SeedCartItem(usbHub, 2)
         ));
     }
 
@@ -197,7 +197,8 @@ public class DemoDataInitializer implements CommandLineRunner {
     }
 
     private User ensureUser(String username, String email, String password, Set<Role> roles) {
-        User user = userRepository.findByUsername(username).orElseGet(() -> new User(username, email, passwordEncoder.encode(password)));
+        User user = userRepository.findByUsername(username)
+                .orElseGet(() -> new User(username, email, passwordEncoder.encode(password)));
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password));
         user.setRoles(new HashSet<>(roles));

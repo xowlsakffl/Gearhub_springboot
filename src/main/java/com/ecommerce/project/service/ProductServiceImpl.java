@@ -247,6 +247,7 @@ public class ProductServiceImpl implements ProductService {
     private ProductDTO toProductDTO(Product product) {
         ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
         productDTO.setImage(constructImageUrl(product.getImage()));
+        productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
         return productDTO;
     }
 }
