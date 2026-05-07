@@ -25,7 +25,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -55,9 +59,9 @@ public class AuthController {
                     .authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
         } catch (AuthenticationException exception) {
             Map<String, Object> map = new HashMap<>();
-            map.put("message", "Bad credentials");
+            map.put("message", "아이디 또는 비밀번호가 올바르지 않습니다.");
             map.put("status", false);
-            return new ResponseEntity<Object>(map, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(map, HttpStatus.NOT_FOUND);
         }
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -81,53 +85,35 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signupRequest) {
-        if (userRepository.existsByUsername(signupRequest.getUsername())){
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: 이미 존재하는 아이디입니다."));
+        if (userRepository.existsByUsername(signupRequest.getUsername())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("이미 존재하는 아이디입니다."));
         }
 
-        if (userRepository.existsByEmail(signupRequest.getEmail())){
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: 이미 존재하는 이메일입니다."));
+        if (userRepository.existsByEmail(signupRequest.getEmail())) {
+            return ResponseEntity.badRequest().body(new MessageResponse("이미 존재하는 이메일입니다."));
         }
 
-        User user = new User(signupRequest.getUsername(), signupRequest.getEmail(), passwordEncoder.encode(signupRequest.getPassword()));
+        User user = new User(
+                signupRequest.getUsername(),
+                signupRequest.getEmail(),
+                passwordEncoder.encode(signupRequest.getPassword())
+        );
 
-        Set<String> strRoles = signupRequest.getRole();
         Set<Role> roles = new HashSet<>();
-        if (strRoles == null){
-            Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                    .orElseThrow(() -> new RuntimeException("Error: 권한이 존재하지 않습니다."));
-            roles.add(userRole);
-        }else {
-            strRoles.forEach(role -> {
-                switch (role) {
-                    case "admin":
-                        Role adminRole = roleRepository.findByRoleName(AppRole.ROLE_ADMIN)
-                                .orElseThrow(() -> new RuntimeException("Error: 권한이 존재하지 않습니다."));
-                        roles.add(adminRole);
-                        break;
-                    case "seller":
-                        Role sellerRole = roleRepository.findByRoleName(AppRole.ROLE_SELLER)
-                                .orElseThrow(() -> new RuntimeException("Error: 권한이 존재하지 않습니다."));
-                        roles.add(sellerRole);
-                        break;
-                    default:
-                        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
-                                .orElseThrow(() -> new RuntimeException("Error: 권한이 존재하지 않습니다."));
-                        roles.add(userRole);
-                }
-            });
-        }
+        Role userRole = roleRepository.findByRoleName(AppRole.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("기본 권한이 존재하지 않습니다."));
+        roles.add(userRole);
 
         user.setRoles(roles);
         userRepository.save(user);
-        return ResponseEntity.ok(new MessageResponse("가입되었습니다."));
+        return ResponseEntity.ok(new MessageResponse("가입이 완료되었습니다."));
     }
 
     @GetMapping("/username")
     public String currentUsername(Authentication authentication) {
-        if (authentication != null){
+        if (authentication != null) {
             return authentication.getName();
-        }else {
+        } else {
             return "";
         }
     }
@@ -150,6 +136,6 @@ public class AuthController {
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                .body(new MessageResponse("로그아웃 되었습니다."));
+                .body(new MessageResponse("로그아웃되었습니다."));
     }
 }

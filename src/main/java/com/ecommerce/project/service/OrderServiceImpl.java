@@ -2,10 +2,21 @@ package com.ecommerce.project.service;
 
 import com.ecommerce.project.exceptions.APIException;
 import com.ecommerce.project.exceptions.ResourceNotFoundException;
-import com.ecommerce.project.model.*;
+import com.ecommerce.project.model.Address;
+import com.ecommerce.project.model.Cart;
+import com.ecommerce.project.model.CartItem;
+import com.ecommerce.project.model.Order;
+import com.ecommerce.project.model.OrderItem;
+import com.ecommerce.project.model.Payment;
+import com.ecommerce.project.model.Product;
 import com.ecommerce.project.payload.OrderDTO;
 import com.ecommerce.project.payload.OrderItemDTO;
-import com.ecommerce.project.repository.*;
+import com.ecommerce.project.repository.AddressRepository;
+import com.ecommerce.project.repository.CartRepository;
+import com.ecommerce.project.repository.OrderItemRepository;
+import com.ecommerce.project.repository.OrderRepository;
+import com.ecommerce.project.repository.PaymentRepository;
+import com.ecommerce.project.repository.ProductRepository;
 import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,8 +84,8 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         List<CartItem> cartItems = cart.getCartItems();
-        if (cartItems.isEmpty()){
-            throw new APIException("장바구니가 비었습니다.");
+        if (cartItems.isEmpty()) {
+            throw new APIException("장바구니가 비어 있습니다.");
         }
 
         List<OrderItem> orderItems = new ArrayList<>();
@@ -110,6 +121,28 @@ public class OrderServiceImpl implements OrderService {
         return orderRepository.findByEmailOrderByOrderDateDescOrderIdDesc(emailId).stream()
                 .map(order -> toOrderDTO(order, order.getOrderItems()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAllByOrderByOrderDateDescOrderIdDesc().stream()
+                .map(order -> toOrderDTO(order, order.getOrderItems()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public OrderDTO updateOrderStatus(Long orderId, String orderStatus) {
+        if (orderStatus == null || orderStatus.isBlank()) {
+            throw new APIException("주문 상태를 입력해 주세요.");
+        }
+
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", "orderId", orderId));
+        order.setOrderStatus(orderStatus.trim());
+
+        Order savedOrder = orderRepository.save(order);
+        return toOrderDTO(savedOrder, savedOrder.getOrderItems());
     }
 
     private OrderDTO toOrderDTO(Order order, List<OrderItem> orderItems) {

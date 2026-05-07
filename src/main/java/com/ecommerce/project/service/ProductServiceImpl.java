@@ -73,7 +73,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         Product product = modelMapper.map(productDTO, Product.class);
-        product.setImage("default.png");
+        product.setImage(resolveProductImage(productDTO.getImage()));
         product.setCategory(category);
         product.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
 
@@ -201,10 +201,17 @@ public class ProductServiceImpl implements ProductService {
         existedProduct.setBrand(product.getBrand());
         existedProduct.setSummarySpecs(product.getSummarySpecs());
         existedProduct.setShippingInfo(product.getShippingInfo());
+        existedProduct.setImage(resolveProductImage(productDTO.getImage(), existedProduct.getImage()));
         existedProduct.setQuantity(product.getQuantity());
         existedProduct.setPrice(product.getPrice());
         existedProduct.setDiscount(product.getDiscount());
         existedProduct.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
+
+        if (productDTO.getCategoryId() != null) {
+            Category category = categoryRepository.findById(productDTO.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", "categoryId", productDTO.getCategoryId()));
+            existedProduct.setCategory(category);
+        }
 
         Product savedProduct = productRepository.save(existedProduct);
 
@@ -232,7 +239,7 @@ public class ProductServiceImpl implements ProductService {
         carts.forEach(cart -> cartService.deleteProductFromCart(cart.getCartId(), productId));
 
         productRepository.delete(existedProduct);
-        return modelMapper.map(existedProduct, ProductDTO.class);
+        return toProductDTO(existedProduct);
     }
 
     @Override
@@ -250,8 +257,17 @@ public class ProductServiceImpl implements ProductService {
     private ProductDTO toProductDTO(Product product) {
         ProductDTO productDTO = modelMapper.map(product, ProductDTO.class);
         productDTO.setImage(constructImageUrl(product.getImage()));
+        productDTO.setCategoryId(product.getCategory() != null ? product.getCategory().getCategoryId() : null);
         productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
         return productDTO;
+    }
+
+    private String resolveProductImage(String image) {
+        return image == null || image.isBlank() ? "default.png" : image;
+    }
+
+    private String resolveProductImage(String image, String fallbackImage) {
+        return image == null || image.isBlank() ? resolveProductImage(fallbackImage) : image;
     }
 
     private String constructImageUrl(String imageName) {

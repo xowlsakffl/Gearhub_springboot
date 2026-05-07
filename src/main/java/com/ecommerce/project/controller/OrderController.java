@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -48,6 +49,17 @@ public class OrderController {
     public ResponseEntity<List<OrderDTO>> getUserOrders() {
         String emailId = authUtil.loggedInEmail();
         return new ResponseEntity<>(orderService.getOrdersByUser(emailId), HttpStatus.OK);
+    }
+
+    @GetMapping("/admin/orders")
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        return new ResponseEntity<>(orderService.getAllOrders(), HttpStatus.OK);
+    }
+
+    @PutMapping("/admin/orders/{orderId}/status")
+    public ResponseEntity<OrderDTO> updateOrderStatus(@PathVariable Long orderId, @RequestBody Map<String, String> request) {
+        OrderDTO order = orderService.updateOrderStatus(orderId, request.get("orderStatus"));
+        return new ResponseEntity<>(order, HttpStatus.OK);
     }
 
     @PostMapping("/order/stripe-client-secret")
