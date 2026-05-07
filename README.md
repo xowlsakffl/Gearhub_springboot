@@ -1,4 +1,4 @@
-# GearHub Spring Boot 전자제품 이커머스 API 서버
+# GearHub Spring Boot API 서버
 
 GearHub는 컴퓨팅, 오디오, 게이밍, 모바일 액세서리를 중심으로 한 전자제품 전문 이커머스 서비스입니다. 이 저장소는 Spring Boot 기반 백엔드 API 서버이며, 사용자 인증, 상품/카테고리, 장바구니, 배송지, 주문/결제, 관리자 운영 기능을 REST API로 제공합니다.
 
