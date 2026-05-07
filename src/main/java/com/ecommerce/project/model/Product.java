@@ -1,6 +1,15 @@
 package com.ecommerce.project.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -24,12 +33,24 @@ public class Product {
     private Long productId;
 
     @NotBlank
-    @Size(min = 2, message = "제품명은 최소 2자 이상 입력해주세요.")
+    @Size(min = 2, message = "상품명은 최소 2자 이상 입력해주세요.")
     private String productName;
+
     @NotBlank
-    @Size(min = 6, message = "제품 설명은 최소 6자 이상 입력해주세요.")
+    @Size(min = 6, message = "상품 설명은 최소 6자 이상 입력해주세요.")
+    @Column(length = 1200)
     private String description;
+
     private String image;
+
+    private String brand;
+
+    @Column(length = 1200)
+    private String summarySpecs;
+
+    @Column(length = 500)
+    private String shippingInfo;
+
     private Integer quantity;
     private double price;
     private double discount;

@@ -61,50 +61,57 @@ public class ProductServiceImpl implements ProductService {
         boolean isProductNotPresent = true;
 
         List<Product> products = category.getProducts();
-        for (int i = 0; i < products.size(); i++) {
-            if (products.get(i).getProductName().equals(productDTO.getProductName())) {
+        for (Product existingProduct : products) {
+            if (existingProduct.getProductName().equals(productDTO.getProductName())) {
                 isProductNotPresent = false;
                 break;
             }
         }
 
-        if (isProductNotPresent) {
-            Product product = modelMapper.map(productDTO, Product.class);
-            product.setImage("default.png");
-            product.setCategory(category);
-            double specialPrice = product.getPrice() - (product.getDiscount() * 0.01) * product.getPrice();
-            product.setSpecialPrice(specialPrice);
-            Product savedProduct = productRepository.save(product);
-
-            return modelMapper.map(savedProduct, ProductDTO.class);
-        }else {
+        if (!isProductNotPresent) {
             throw new APIException("Product already exist");
         }
+
+        Product product = modelMapper.map(productDTO, Product.class);
+        product.setImage("default.png");
+        product.setCategory(category);
+        product.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
+
+        Product savedProduct = productRepository.save(product);
+        return toProductDTO(savedProduct);
     }
 
     @Override
-    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder, String keyword, String category) {
+    public ProductResponse getAllProducts(
+            Integer pageNumber,
+            Integer pageSize,
+            String sortBy,
+            String sortOrder,
+            String keyword,
+            String category
+    ) {
         Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
 
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
         Specification<Product> spec = Specification.where(null);
-        if(keyword != null && !keyword.isEmpty()){
+
+        if (keyword != null && !keyword.isEmpty()) {
             spec = spec.and((root, query, criteriaBuilder) ->
-                    criteriaBuilder.like(criteriaBuilder.lower(root.get("productName")), "%"+keyword.toLowerCase()+"%"));
+                    criteriaBuilder.like(
+                            criteriaBuilder.lower(root.get("productName")),
+                            "%" + keyword.toLowerCase() + "%"
+                    ));
         }
 
-        if(category != null && !category.isEmpty()){
+        if (category != null && !category.isEmpty()) {
             spec = spec.and((root, query, criteriaBuilder) ->
                     criteriaBuilder.like(root.get("category").get("categoryName"), category));
         }
 
         Page<Product> pageProducts = productRepository.findAll(spec, pageDetails);
-
-        List<Product> products = pageProducts.getContent();
-
-        List<ProductDTO> productDTOS = products.stream()
+        List<ProductDTO> productDTOS = pageProducts.getContent().stream()
                 .map(this::toProductDTO)
                 .toList();
 
@@ -118,16 +125,12 @@ public class ProductServiceImpl implements ProductService {
         return productResponse;
     }
 
-    private String constructImageUrl(String imageName){
-        if (imageName == null || imageName.isBlank()) {
-            return imageName;
-        }
+    @Override
+    public ProductDTO getProductById(Long productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
-        if (imageName.startsWith("http://") || imageName.startsWith("https://")) {
-            return imageName;
-        }
-
-        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
+        return toProductDTO(product);
     }
 
     @Override
@@ -142,9 +145,8 @@ public class ProductServiceImpl implements ProductService {
         Page<Product> pageProducts = productRepository.findByCategoryOrderByPriceAsc(category, pageDetails);
 
         List<Product> products = pageProducts.getContent();
-
         if (products.isEmpty()) {
-            throw new APIException(category.getCategoryName() + "category does not have any products");
+            throw new APIException(category.getCategoryName() + " category does not have any products");
         }
 
         List<ProductDTO> productDTOS = products.stream()
@@ -167,16 +169,16 @@ public class ProductServiceImpl implements ProductService {
                 ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
-        Page<Product> pageProducts = productRepository.findByProductNameLikeIgnoreCase('%'+keyword+'%', pageDetails);
+        Page<Product> pageProducts = productRepository.findByProductNameLikeIgnoreCase("%" + keyword + "%", pageDetails);
 
         List<Product> products = pageProducts.getContent();
-        List<ProductDTO> productDTOS = products.stream()
-                .map(this::toProductDTO)
-                .toList();
-
         if (products.isEmpty()) {
             throw new APIException("Product not found with keyword:" + keyword);
         }
+
+        List<ProductDTO> productDTOS = products.stream()
+                .map(this::toProductDTO)
+                .toList();
 
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
@@ -196,19 +198,21 @@ public class ProductServiceImpl implements ProductService {
         Product product = modelMapper.map(productDTO, Product.class);
         existedProduct.setProductName(product.getProductName());
         existedProduct.setDescription(product.getDescription());
+        existedProduct.setBrand(product.getBrand());
+        existedProduct.setSummarySpecs(product.getSummarySpecs());
+        existedProduct.setShippingInfo(product.getShippingInfo());
         existedProduct.setQuantity(product.getQuantity());
         existedProduct.setPrice(product.getPrice());
         existedProduct.setDiscount(product.getDiscount());
-        existedProduct.setSpecialPrice(product.getSpecialPrice());
+        existedProduct.setSpecialPrice(calculateSpecialPrice(product.getPrice(), product.getDiscount()));
 
         Product savedProduct = productRepository.save(existedProduct);
 
         List<Cart> carts = cartRepository.findCartsByProductId(productId);
-
         List<CartDTO> cartDTOS = carts.stream().map(cart -> {
             CartDTO cartDTO = modelMapper.map(cart, CartDTO.class);
             List<ProductDTO> products = cart.getCartItems().stream()
-                    .map(p -> modelMapper.map(p.getProduct(), ProductDTO.class))
+                    .map(item -> modelMapper.map(item.getProduct(), ProductDTO.class))
                     .collect(Collectors.toList());
             cartDTO.setProducts(products);
             return cartDTO;
@@ -216,7 +220,7 @@ public class ProductServiceImpl implements ProductService {
 
         cartDTOS.forEach(cart -> cartService.updateProductInCarts(cart.getCartId(), productId));
 
-        return modelMapper.map(savedProduct, ProductDTO.class);
+        return toProductDTO(savedProduct);
     }
 
     @Override
@@ -237,7 +241,6 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product", "productId", productId));
 
         String fileName = fileService.uploadImage(path, image);
-
         existedProduct.setImage(fileName);
 
         Product updatedProduct = productRepository.save(existedProduct);
@@ -249,5 +252,21 @@ public class ProductServiceImpl implements ProductService {
         productDTO.setImage(constructImageUrl(product.getImage()));
         productDTO.setCategoryName(product.getCategory() != null ? product.getCategory().getCategoryName() : null);
         return productDTO;
+    }
+
+    private String constructImageUrl(String imageName) {
+        if (imageName == null || imageName.isBlank()) {
+            return imageName;
+        }
+
+        if (imageName.startsWith("http://") || imageName.startsWith("https://")) {
+            return imageName;
+        }
+
+        return imageBaseUrl.endsWith("/") ? imageBaseUrl + imageName : imageBaseUrl + "/" + imageName;
+    }
+
+    private double calculateSpecialPrice(double price, double discount) {
+        return Math.round((price - (price * (discount / 100.0))) * 100) / 100.0;
     }
 }
