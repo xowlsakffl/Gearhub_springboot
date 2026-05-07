@@ -1,41 +1,61 @@
-# E-Commerce
-온라인 쇼핑몰의 핵심 기능을 구현한 이커머스 백엔드 서비스입니다. 사용자 정보 관리, 상품 등록 및 조회, 장바구니 기능, 주문/결제 처리, 배송 주소 등록 등 전반적인 전자상거래 로직을 Spring Boot 기반으로 구성하였습니다.
+# GearHub Spring Boot
 
-## 요구사항 분석 
-- 사용자는 회원가입 및 로그인할 수 있어야 한다.
-- 사용자는 상품을 조회하고, 장바구니에 담을 수 있어야 한다.
-- 장바구니에 담은 상품은 주문 및 결제가 가능해야 한다.
-- 결제 후에는 배송을 위한 주소를 입력하거나 선택할 수 있어야 한다.
-- 관리자 또는 셀러는 상품을 등록하고 수정할 수 있어야 한다.
-- 주문 상태, 결제 정보, 배송 상태 등의 이력을 확인할 수 있어야 한다.
+GearHub는 전자제품 전용 이커머스 쇼핑몰 백엔드입니다. 상품/카테고리 조회, 장바구니, 배송지, 주문, 결제 흐름을 제공하며 관리자 권한 기반 운영 API를 분리했습니다.
 
-## Feature List   
+## 주요 기능
 
-- 회원가입 / 로그인 / 사용자 정보 조회
-- 상품 등록 / 수정 / 삭제 / 상세 조회
-- 장바구니 담기 / 수량 수정 / 삭제
-- 주문 생성 및 결제 처리
-- 주소 등록 / 수정 / 삭제
-- Redis를 통한 캐싱 처리
-- EC2 서버에 배포 및 운영 환경 구성  
+- JWT 기반 로그인 및 인증
+- 사용자 회원가입 기본 권한 제한
+- 상품 목록, 상세, 카테고리별 조회
+- 장바구니 생성, 수량 변경, 삭제
+- 배송지 등록, 수정, 삭제
+- 주문 생성 및 결제 정보 저장
+- 사용자별 주문 내역 조회
+- 관리자 전용 상품 등록, 수정, 삭제
+- 관리자 전용 카테고리 등록, 수정, 삭제
+- 관리자 전용 전체 주문 조회 및 주문 상태 변경
+- 데모 데이터 자동 생성
 
-## Tech Stack   
+## 권한 체계
 
-- JDK 21
-- Spring Boot 3.2.5
+- `ROLE_USER`: 쇼핑몰 이용자
+- `ROLE_SELLER`: 판매자 확장용 권한
+- `ROLE_ADMIN`: 관리자 API 접근 권한
+
+공개 회원가입은 `ROLE_USER`만 부여합니다. `/api/admin/**` 경로는 `ROLE_ADMIN` 권한이 있는 계정만 접근할 수 있습니다.
+
+## 데모 계정
+
+- 일반 사용자: `demo / password123!`
+- 관리자: `admin / admin1234!`
+
+## 기술 스택
+
+- Java 21
+- Spring Boot 3
+- Spring Security
+- JWT
 - Spring Data JPA
+- H2
 - Maven
 - Lombok
-- Github
-- AWS EC2
-- Redis
-- MySQL
-- JWT TOKEN
+- ModelMapper
+- Stripe API
 
+## 실행 방법
 
-## Erd
-![Erd](https://github.com/user-attachments/assets/8f952ce6-4261-45ee-8a5c-d8c069b263d8)
+```bash
+./mvnw spring-boot:run
+```
 
+Windows 환경에서는 다음 명령을 사용할 수 있습니다.
 
-## Result   
-  http://54.180.99.138
+```bash
+mvnw.cmd spring-boot:run
+```
+
+## 빌드
+
+```bash
+./mvnw -DskipTests package
+```
